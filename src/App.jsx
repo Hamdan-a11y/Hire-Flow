@@ -6,18 +6,19 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [locationTerm, setLocationTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [selectedType, setSelectedType] = useState("All");
 
   const [jobs, setJobs] = useState([
     {
       id: 1,
       title: "Senior Frontend Engineer",
       company: "Stripe",
-      location: "Remote (US/EU)",
+      location: "Remote in San Francisco, CA",
       type: "Full-time",
-      salary: "$145,000 - $175,000",
-      tags: ["React", "TypeScript", "Tailwind"],
-      posted: "2d ago",
-      logoBg: "#635bff",
+      salary: "$145,000 - $175,000 a year",
+      tags: ["React", "TypeScript", "GraphQL"],
+      posted: "2 days ago",
+      rating: "4.8",
     },
     {
       id: 2,
@@ -25,10 +26,10 @@ export default function App() {
       company: "Airbnb",
       location: "San Francisco, CA",
       type: "Full-time",
-      salary: "$130,000 - $160,000",
-      tags: ["React", "Node.js", "GraphQL"],
-      posted: "1d ago",
-      logoBg: "#ff5a5f",
+      salary: "$130,000 - $160,000 a year",
+      tags: ["React", "Node.js", "Tailwind"],
+      posted: "1 day ago",
+      rating: "4.6",
     },
     {
       id: 3,
@@ -36,25 +37,25 @@ export default function App() {
       company: "Figma",
       location: "Remote",
       type: "Full-time",
-      salary: "$110,000 - $140,000",
-      tags: ["UI/UX", "Design Systems", "Figma"],
-      posted: "3d ago",
-      logoBg: "#a259ff",
+      salary: "$110,000 - $140,000 a year",
+      tags: ["Figma", "Design Systems", "Prototyping"],
+      posted: "3 days ago",
+      rating: "4.9",
     },
     {
       id: 4,
-      title: "Backend Engineer",
+      title: "Backend Node.js Engineer",
       company: "Datadog",
       location: "New York, NY",
       type: "Contract",
-      salary: "$120,000 - $150,000",
-      tags: ["Go", "Node.js", "AWS"],
-      posted: "5h ago",
-      logoBg: "#6320ee",
+      salary: "$120,000 - $150,000 a year",
+      tags: ["Node.js", "AWS", "Docker"],
+      posted: "5 hours ago",
+      rating: "4.4",
     },
   ]);
 
-  // Filter jobs by both Title/Company AND Location
+  // Filter jobs by Title/Company, Location, and Type
   const filteredJobs = jobs.filter((job) => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -64,12 +65,17 @@ export default function App() {
       .toLowerCase()
       .includes(locationTerm.toLowerCase());
 
-    return matchesSearch && matchesLocation;
+    const matchesType =
+      selectedType === "All" ||
+      job.type.toLowerCase() === selectedType.toLowerCase() ||
+      (selectedType === "Remote" && job.location.toLowerCase().includes("remote"));
+
+    return matchesSearch && matchesLocation && matchesType;
   });
 
   const handleAddJob = (newJob) => {
-    setJobs([newJob, ...jobs]); // Add new job at the top
-    setShowForm(false); // Close form after posting
+    setJobs([newJob, ...jobs]);
+    setShowForm(false);
   };
 
   const handleDeleteJob = (idToDelete) => {
@@ -77,140 +83,130 @@ export default function App() {
   };
 
   return (
-    <div style={{ backgroundColor: "#f8fafc", minHeight: "100vh", fontFamily: "system-ui, sans-serif" }}>
-      {/* Top Navbar */}
-      <header
-        style={{
-          backgroundColor: "#ffffff",
-          borderBottom: "1px solid #e2e8f0",
-          padding: "16px 32px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <span style={{ fontSize: "24px" }}>💼</span>
-          <h1 style={{ margin: 0, fontSize: "22px", color: "#0f172a", fontWeight: "800" }}>
-            Hire<span style={{ color: "#2563eb" }}>Flow</span>
-          </h1>
+    <div>
+      {/* 1. Indeed Top Navbar */}
+      <nav className="indeed-nav">
+        <div className="nav-left">
+          <a href="#" className="indeed-logo">
+            indeed
+          </a>
+          <ul className="nav-links">
+            <li>
+              <a href="#" className="nav-link active">
+                Find jobs
+              </a>
+            </li>
+            <li>
+              <a href="#" className="nav-link">
+                Company reviews
+              </a>
+            </li>
+            <li>
+              <a href="#" className="nav-link">
+                Salary guide
+              </a>
+            </li>
+          </ul>
         </div>
 
-        <button
-          onClick={() => setShowForm(!showForm)}
-          style={{
-            backgroundColor: showForm ? "#64748b" : "#2563eb",
-            color: "#fff",
-            border: "none",
-            padding: "10px 18px",
-            borderRadius: "8px",
-            fontWeight: "600",
-            cursor: "pointer",
-            fontSize: "14px",
-          }}
-        >
-          {showForm ? "✕ Close Form" : "+ Post a Job"}
-        </button>
+        <div className="nav-right">
+          <button
+            className="btn-post-job"
+            onClick={() => setShowForm(!showForm)}
+          >
+            {showForm ? "✕ Close Form" : "Employers / Post Job"}
+          </button>
+        </div>
+      </nav>
+
+      {/* 2. Indeed Search Section (What & Where) */}
+      <header className="search-hero">
+        <div className="search-box-wrapper">
+          <div className="search-field">
+            <label>What</label>
+            <input
+              type="text"
+              placeholder="Job title, keywords, or company"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="search-field">
+            <label>Where</label>
+            <input
+              type="text"
+              placeholder='City, state, zip code, or "remote"'
+              value={locationTerm}
+              onChange={(e) => setLocationTerm(e.target.value)}
+            />
+          </div>
+
+          <button className="btn-find-jobs">Find jobs</button>
+        </div>
+
+        {/* 3. Filter Bar (Pills) */}
+        <div className="filter-bar">
+          {["All", "Remote", "Full-time", "Contract"].map((type) => {
+            const isActive = selectedType === type;
+            return (
+              <button
+                key={type}
+                className={`indeed-pill ${isActive ? "active" : ""}`}
+                onClick={() => setSelectedType(type)}
+              >
+                {type} {type !== "All" && "▾"}
+              </button>
+            );
+          })}
+        </div>
       </header>
 
-      {/* Main Container */}
-      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "32px 16px" }}>
-        
-        {/* Hero Title */}
-        <div style={{ textAlign: "center", marginBottom: "28px" }}>
-          <h2 style={{ fontSize: "32px", color: "#0f172a", margin: "0 0 8px 0" }}>
-            Find your next dream role
-          </h2>
-          <p style={{ color: "#64748b", fontSize: "16px" }}>
-            Discover top tech jobs at companies building the future.
-          </p>
-        </div>
-
-        {/* Collapsible Job Post Form */}
+      {/* 4. Main Job Feed */}
+      <main className="feed-container">
+        {/* Post Form (if opened) */}
         {showForm && (
           <div style={{ marginBottom: "24px" }}>
             <JobForm onAddJob={handleAddJob} />
           </div>
         )}
 
-        {/* Dual Search Bar: What & Where */}
-        <div
-          style={{
-            backgroundColor: "#ffffff",
-            padding: "12px",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-            display: "flex",
-            gap: "12px",
-            flexWrap: "wrap",
-            marginBottom: "24px",
-          }}
-        >
-          <input
-            type="text"
-            placeholder="🔍 Job title, skill, or company..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              flex: "1 1 240px",
-              padding: "12px 16px",
-              border: "1px solid #cbd5e1",
-              borderRadius: "8px",
-              fontSize: "14px",
-              outline: "none",
-            }}
-          />
-          <input
-            type="text"
-            placeholder="📍 Location or 'Remote'..."
-            value={locationTerm}
-            onChange={(e) => setLocationTerm(e.target.value)}
-            style={{
-              flex: "1 1 200px",
-              padding: "12px 16px",
-              border: "1px solid #cbd5e1",
-              borderRadius: "8px",
-              fontSize: "14px",
-              outline: "none",
-            }}
-          />
+        <div className="feed-header">
+          <span>
+            Showing <strong>{filteredJobs.length}</strong> jobs based on your search
+          </span>
         </div>
 
-        {/* Results Counter */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-          <p style={{ color: "#475569", fontWeight: "600", fontSize: "15px" }}>
-            Showing <strong>{filteredJobs.length}</strong> {filteredJobs.length === 1 ? "job" : "jobs"}
-          </p>
-        </div>
-
-        {/* Job List */}
+        {/* Job Cards List */}
         <section className="job-list">
           {filteredJobs.length === 0 ? (
             <div
               style={{
-                backgroundColor: "#fff",
-                padding: "40px",
-                borderRadius: "12px",
+                backgroundColor: "#ffffff",
+                padding: "48px 24px",
+                borderRadius: "8px",
+                border: "1px solid #d4d2d0",
                 textAlign: "center",
-                border: "1px dashed #cbd5e1",
-                color: "#64748b",
               }}
             >
-              <p style={{ fontSize: "28px", margin: "0 0 10px 0" }}>🔍</p>
-              <p style={{ fontWeight: "600", fontSize: "16px" }}>No jobs match your criteria.</p>
-              <p style={{ fontSize: "14px", marginTop: "4px" }}>Try clearing or adjusting your search terms.</p>
+              <h3 style={{ fontSize: "18px", color: "#2d2d2d", marginBottom: "8px" }}>
+                No jobs match your search
+              </h3>
+              <p style={{ color: "#595959", fontSize: "14px" }}>
+                Try different keywords or remove filters to see more results.
+              </p>
             </div>
           ) : (
             filteredJobs.map((job) => (
-              <JobCard key={job.id} {...job} onDelete={handleDeleteJob} />
+              <JobCard
+                key={job.id}
+                {...job}
+                onDelete={handleDeleteJob}
+              />
             ))
           )}
         </section>
-      </div>
+      </main>
     </div>
   );
 }
