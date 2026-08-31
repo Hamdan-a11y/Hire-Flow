@@ -1,12 +1,14 @@
 import { useState } from "react";
 import JobCard from "./components/JobCard";
 import JobForm from "./components/JobForm";
+import JobDetails from "./components/JobDetails";
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [locationTerm, setLocationTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedType, setSelectedType] = useState("All");
+  const [selectedJobId, setSelectedJobId] = useState(1);
 
   const [jobs, setJobs] = useState([
     {
@@ -73,13 +75,22 @@ export default function App() {
     return matchesSearch && matchesLocation && matchesType;
   });
 
+  // Find the selected job object to pass to JobDetails
+  const selectedJob =
+    jobs.find((job) => job.id === selectedJobId) || filteredJobs[0] || null;
+
   const handleAddJob = (newJob) => {
     setJobs([newJob, ...jobs]);
+    setSelectedJobId(newJob.id); // Auto-select the newly added job
     setShowForm(false);
   };
 
   const handleDeleteJob = (idToDelete) => {
-    setJobs(jobs.filter((job) => job.id !== idToDelete));
+    const updated = jobs.filter((job) => job.id !== idToDelete);
+    setJobs(updated);
+    if (selectedJobId === idToDelete && updated.length > 0) {
+      setSelectedJobId(updated[0].id);
+    }
   };
 
   return (
@@ -119,7 +130,7 @@ export default function App() {
         </div>
       </nav>
 
-      {/* 2. Indeed Search Section (What & Where) */}
+      {/* 2. Search Section (What & Where) */}
       <header className="search-hero">
         <div className="search-box-wrapper">
           <div className="search-field">
@@ -162,9 +173,9 @@ export default function App() {
         </div>
       </header>
 
-      {/* 4. Main Job Feed */}
+      {/* 4. Main 2-Column Split Feed */}
       <main className="feed-container">
-        {/* Post Form (if opened) */}
+        {/* Post Form Modal/Card (if opened) */}
         {showForm && (
           <div style={{ marginBottom: "24px" }}>
             <JobForm onAddJob={handleAddJob} />
@@ -177,35 +188,47 @@ export default function App() {
           </span>
         </div>
 
-        {/* Job Cards List */}
-        <section className="job-list">
-          {filteredJobs.length === 0 ? (
-            <div
-              style={{
-                backgroundColor: "#ffffff",
-                padding: "48px 24px",
-                borderRadius: "8px",
-                border: "1px solid #d4d2d0",
-                textAlign: "center",
-              }}
-            >
-              <h3 style={{ fontSize: "18px", color: "#2d2d2d", marginBottom: "8px" }}>
-                No jobs match your search
-              </h3>
-              <p style={{ color: "#595959", fontSize: "14px" }}>
-                Try different keywords or remove filters to see more results.
-              </p>
-            </div>
-          ) : (
-            filteredJobs.map((job) => (
-              <JobCard
-                key={job.id}
-                {...job}
-                onDelete={handleDeleteJob}
-              />
-            ))
+        {/* 2-Column Split View: List on the Left, Details on the Right */}
+        <div className="indeed-split-layout">
+          {/* Left Column: Job Cards List */}
+          <section className="job-list">
+            {filteredJobs.length === 0 ? (
+              <div
+                style={{
+                  backgroundColor: "#ffffff",
+                  padding: "48px 24px",
+                  borderRadius: "8px",
+                  border: "1px solid #d4d2d0",
+                  textAlign: "center",
+                }}
+              >
+                <h3 style={{ fontSize: "18px", color: "#2d2d2d", marginBottom: "8px" }}>
+                  No jobs match your search
+                </h3>
+                <p style={{ color: "#595959", fontSize: "14px" }}>
+                  Try different keywords or remove filters.
+                </p>
+              </div>
+            ) : (
+              filteredJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  {...job}
+                  isSelected={job.id === selectedJobId}
+                  onSelect={setSelectedJobId}
+                  onDelete={handleDeleteJob}
+                />
+              ))
+            )}
+          </section>
+
+          {/* Right Column: Sticky Job Details Pane */}
+          {filteredJobs.length > 0 && selectedJob && (
+            <aside>
+              <JobDetails job={selectedJob} />
+            </aside>
           )}
-        </section>
+        </div>
       </main>
     </div>
   );

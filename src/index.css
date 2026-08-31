@@ -317,3 +317,163 @@ body {
 .btn-bookmark:hover {
   color: #2557a7;
 }
+/* 2-Column Split Layout */
+.indeed-split-layout {
+  display: grid;
+  grid-template-columns: 440px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .indeed-split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Selected Card Highlight */
+.indeed-card.selected {
+  border: 2px solid #2557a7;
+  box-shadow: 0 4px 12px rgba(37, 87, 167, 0.12);
+}
+
+/* Sticky Details Pane */
+.indeed-details-pane {
+  background: #ffffff;
+  border: 1px solid #d4d2d0;
+  border-radius: 8px;
+  padding: 24px;
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  text-align: left;
+}
+
+.details-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #2d2d2d;
+  margin-bottom: 6px;
+}
+
+.details-company-name {
+  color: #2557a7;
+  font-weight: 700;
+  text-decoration: underline;
+  font-size: 15px;
+}
+
+.details-location {
+  color: #595959;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.details-pill-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px;
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.details-label {
+  font-weight: 700;
+  color: #2d2d2d;
+}
+
+.details-value {
+  color: #475569;
+}
+
+.details-actions {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.btn-indeed-apply {
+  background-color: #2557a7;
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-indeed-apply:hover {
+  background-color: #0b3b8c;
+}
+
+.btn-indeed-save {
+  background: #ffffff;
+  border: 1px solid #2557a7;
+  color: #2557a7;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-indeed-save.saved {
+  background: #e8f0fe;
+}
+
+.details-divider {
+  border: none;
+  border-top: 1px solid #e4e2e0;
+  margin: 20px 0;
+}
+
+.details-body h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2d2d2d;
+  margin-bottom: 12px;
+}
+
+.details-body h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2d2d2d;
+  margin: 16px 0 8px 0;
+}
+
+.details-body ul {
+  padding-left: 20px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.details-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.details-tag-badge {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.details-posted-date {
+  color: #767676;
+  font-size: 13px;
+  margin-top: 20px;
+}

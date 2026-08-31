@@ -10,13 +10,18 @@ export default function JobCard({
   tags = [],
   posted,
   rating = "4.5",
+  isSelected,
+  onSelect,
   onDelete,
 }) {
   const [isApplied, setIsApplied] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
   return (
-    <div className={`indeed-card ${isApplied ? "applied" : ""}`}>
+    <div
+      className={`indeed-card ${isSelected ? "selected" : ""}`}
+      onClick={() => onSelect(id)}
+    >
       {/* Top Header: Title + Bookmark Heart */}
       <div className="card-top">
         <div>
@@ -30,10 +35,13 @@ export default function JobCard({
           <div className="card-location">{location}</div>
         </div>
 
-        {/* Indeed Heart Bookmark */}
+        {/* Heart Bookmark Button */}
         <button
           className={`btn-bookmark ${isSaved ? "saved" : ""}`}
-          onClick={() => setIsSaved(!isSaved)}
+          onClick={(e) => {
+            e.stopPropagation(); // Don't trigger card selection when clicking heart
+            setIsSaved(!isSaved);
+          }}
           title={isSaved ? "Saved" : "Save job"}
         >
           {isSaved ? "♥" : "♡"}
@@ -55,7 +63,7 @@ export default function JobCard({
       {/* Snippet Bullet Points */}
       <ul className="card-snippets">
         <li>Work with modern technologies including {tags.join(", ")}.</li>
-        <li>Collaborative team environment with competitive health & 401(k) benefits.</li>
+        <li>Collaborative team environment with competitive benefits.</li>
       </ul>
 
       {/* Footer: Date posted + Apply Action + Delete */}
@@ -64,7 +72,10 @@ export default function JobCard({
 
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           <button
-            onClick={() => setIsApplied(true)}
+            onClick={(e) => {
+              e.stopPropagation(); // Don't trigger card selection when clicking apply
+              setIsApplied(true);
+            }}
             disabled={isApplied}
             style={{
               backgroundColor: isApplied ? "#10b981" : "#2557a7",
@@ -81,7 +92,10 @@ export default function JobCard({
           </button>
 
           <button
-            onClick={() => onDelete(id)}
+            onClick={(e) => {
+              e.stopPropagation(); // Don't trigger card selection when deleting
+              onDelete(id);
+            }}
             style={{
               background: "transparent",
               border: "none",
