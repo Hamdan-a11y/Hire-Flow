@@ -11,11 +11,12 @@ export default function JobCard({
   posted,
   rating = "4.5",
   isSelected,
+  isSaved,
   onSelect,
+  onToggleSave,
   onDelete,
 }) {
   const [isApplied, setIsApplied] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
 
   return (
     <div
@@ -39,8 +40,8 @@ export default function JobCard({
         <button
           className={`btn-bookmark ${isSaved ? "saved" : ""}`}
           onClick={(e) => {
-            e.stopPropagation(); // Don't trigger card selection when clicking heart
-            setIsSaved(!isSaved);
+            e.stopPropagation();
+            onToggleSave(id);
           }}
           title={isSaved ? "Saved" : "Save job"}
         >
@@ -73,7 +74,7 @@ export default function JobCard({
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           <button
             onClick={(e) => {
-              e.stopPropagation(); // Don't trigger card selection when clicking apply
+              e.stopPropagation();
               setIsApplied(true);
             }}
             disabled={isApplied}
@@ -93,7 +94,7 @@ export default function JobCard({
 
           <button
             onClick={(e) => {
-              e.stopPropagation(); // Don't trigger card selection when deleting
+              e.stopPropagation();
               onDelete(id);
             }}
             style={{

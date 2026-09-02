@@ -1,8 +1,7 @@
 import { useState } from "react";
 
-export default function JobDetails({ job }) {
+export default function JobDetails({ job, isSaved, onToggleSave }) {
   const [isApplied, setIsApplied] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
 
   if (!job) {
     return (
@@ -52,7 +51,7 @@ export default function JobDetails({ job }) {
 
         <button
           className={`btn-indeed-save ${isSaved ? "saved" : ""}`}
-          onClick={() => setIsSaved(!isSaved)}
+          onClick={() => onToggleSave(job.id)}
         >
           {isSaved ? "♥ Saved" : "♡ Save job"}
         </button>
