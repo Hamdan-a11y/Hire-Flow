@@ -9,6 +9,8 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [selectedType, setSelectedType] = useState("All");
   const [selectedJobId, setSelectedJobId] = useState(1);
+  const [savedJobIds, setSavedJobIds] = useState([]);
+  const [activeTab, setActiveTab] = useState("find"); // "find" | "saved"
 
   const [jobs, setJobs] = useState([
     {
@@ -57,16 +59,33 @@ export default function App() {
     },
   ]);
 
-  // Filter jobs by Title/Company, Location, and Type
+  // Toggle Bookmark logic
+  const handleToggleSave = (id) => {
+    if (savedJobIds.includes(id)) {
+      setSavedJobIds(savedJobIds.filter((jobId) => jobId !== id));
+    } else {
+      setSavedJobIds([...savedJobIds, id]);
+    }
+  };
+
+  // Filter jobs by Tab, Search, Location, and Type
   const filteredJobs = jobs.filter((job) => {
+    // 1. Tab check: If on "saved" tab, only show saved jobs
+    if (activeTab === "saved" && !savedJobIds.includes(job.id)) {
+      return false;
+    }
+
+    // 2. What (Title / Company) search
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company.toLowerCase().includes(searchTerm.toLowerCase());
 
+    // 3. Where (Location) search
     const matchesLocation = job.location
       .toLowerCase()
       .includes(locationTerm.toLowerCase());
 
+    // 4. Job Type pill filter
     const matchesType =
       selectedType === "All" ||
       job.type.toLowerCase() === selectedType.toLowerCase() ||
@@ -75,19 +94,21 @@ export default function App() {
     return matchesSearch && matchesLocation && matchesType;
   });
 
-  // Find the selected job object to pass to JobDetails
+  // Find currently selected job
   const selectedJob =
     jobs.find((job) => job.id === selectedJobId) || filteredJobs[0] || null;
 
   const handleAddJob = (newJob) => {
     setJobs([newJob, ...jobs]);
-    setSelectedJobId(newJob.id); // Auto-select the newly added job
+    setSelectedJobId(newJob.id);
     setShowForm(false);
   };
 
   const handleDeleteJob = (idToDelete) => {
     const updated = jobs.filter((job) => job.id !== idToDelete);
     setJobs(updated);
+    // Also remove from saved list if deleted
+    setSavedJobIds(savedJobIds.filter((id) => id !== idToDelete));
     if (selectedJobId === idToDelete && updated.length > 0) {
       setSelectedJobId(updated[0].id);
     }
@@ -98,22 +119,36 @@ export default function App() {
       {/* 1. Indeed Top Navbar */}
       <nav className="indeed-nav">
         <div className="nav-left">
-          <a href="#" className="indeed-logo">
+          <a href="#" className="indeed-logo" onClick={() => setActiveTab("find")}>
             indeed
           </a>
           <ul className="nav-links">
             <li>
-              <a href="#" className="nav-link active">
+              <a
+                href="#"
+                className={`nav-link ${activeTab === "find" ? "active" : ""}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveTab("find");
+                }}
+              >
                 Find jobs
               </a>
             </li>
             <li>
-              <a href="#" className="nav-link">
-                Company reviews
+              <a
+                href="#"
+                className={`nav-link ${activeTab === "saved" ? "active" : ""}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveTab("saved");
+                }}
+              >
+                ♥ Saved ({savedJobIds.length})
               </a>
             </li>
             <li>
-              <a href="#" className="nav-link">
+              <a href="#" className="nav-link" onClick={(e) => e.preventDefault()}>
                 Salary guide
               </a>
             </li>
@@ -184,11 +219,19 @@ export default function App() {
 
         <div className="feed-header">
           <span>
-            Showing <strong>{filteredJobs.length}</strong> jobs based on your search
+            {activeTab === "saved" ? (
+              <>
+                <strong>Saved Jobs</strong> ({filteredJobs.length})
+              </>
+            ) : (
+              <>
+                Showing <strong>{filteredJobs.length}</strong> jobs based on your search
+              </>
+            )}
           </span>
         </div>
 
-        {/* 2-Column Split View: List on the Left, Details on the Right */}
+        {/* 2-Column Split View */}
         <div className="indeed-split-layout">
           {/* Left Column: Job Cards List */}
           <section className="job-list">
@@ -203,10 +246,14 @@ export default function App() {
                 }}
               >
                 <h3 style={{ fontSize: "18px", color: "#2d2d2d", marginBottom: "8px" }}>
-                  No jobs match your search
+                  {activeTab === "saved"
+                    ? "You haven't saved any jobs yet"
+                    : "No jobs match your search"}
                 </h3>
                 <p style={{ color: "#595959", fontSize: "14px" }}>
-                  Try different keywords or remove filters.
+                  {activeTab === "saved"
+                    ? "Click the heart icon on any job card to save it for later."
+                    : "Try different keywords or remove filters."}
                 </p>
               </div>
             ) : (
@@ -215,7 +262,9 @@ export default function App() {
                   key={job.id}
                   {...job}
                   isSelected={job.id === selectedJobId}
+                  isSaved={savedJobIds.includes(job.id)}
                   onSelect={setSelectedJobId}
+                  onToggleSave={handleToggleSave}
                   onDelete={handleDeleteJob}
                 />
               ))
@@ -225,7 +274,11 @@ export default function App() {
           {/* Right Column: Sticky Job Details Pane */}
           {filteredJobs.length > 0 && selectedJob && (
             <aside>
-              <JobDetails job={selectedJob} />
+              <JobDetails
+                job={selectedJob}
+                isSaved={savedJobIds.includes(selectedJob.id)}
+                onToggleSave={handleToggleSave}
+              />
             </aside>
           )}
         </div>
