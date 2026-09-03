@@ -1,63 +1,85 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import JobCard from "./components/JobCard";
 import JobForm from "./components/JobForm";
 import JobDetails from "./components/JobDetails";
+
+const DEFAULT_JOBS = [
+  {
+    id: 1,
+    title: "Senior Frontend Engineer",
+    company: "Stripe",
+    location: "Remote in San Francisco, CA",
+    type: "Full-time",
+    salary: "$145,000 - $175,000 a year",
+    tags: ["React", "TypeScript", "GraphQL"],
+    posted: "2 days ago",
+    rating: "4.8",
+  },
+  {
+    id: 2,
+    title: "Full Stack Developer",
+    company: "Airbnb",
+    location: "San Francisco, CA",
+    type: "Full-time",
+    salary: "$130,000 - $160,000 a year",
+    tags: ["React", "Node.js", "Tailwind"],
+    posted: "1 day ago",
+    rating: "4.6",
+  },
+  {
+    id: 3,
+    title: "Product Designer (UI/UX)",
+    company: "Figma",
+    location: "Remote",
+    type: "Full-time",
+    salary: "$110,000 - $140,000 a year",
+    tags: ["Figma", "Design Systems", "Prototyping"],
+    posted: "3 days ago",
+    rating: "4.9",
+  },
+  {
+    id: 4,
+    title: "Backend Node.js Engineer",
+    company: "Datadog",
+    location: "New York, NY",
+    type: "Contract",
+    salary: "$120,000 - $150,000 a year",
+    tags: ["Node.js", "AWS", "Docker"],
+    posted: "5 hours ago",
+    rating: "4.4",
+  },
+];
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [locationTerm, setLocationTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedType, setSelectedType] = useState("All");
+
+  // 1. Initialize jobs from localStorage or fallback to DEFAULT_JOBS
+  const [jobs, setJobs] = useState(() => {
+    const saved = localStorage.getItem("hireflow_jobs");
+    return saved ? JSON.parse(saved) : DEFAULT_JOBS;
+  });
+
+  // 2. Initialize savedJobIds from localStorage
+  const [savedJobIds, setSavedJobIds] = useState(() => {
+    const saved = localStorage.getItem("hireflow_saved_ids");
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [selectedJobId, setSelectedJobId] = useState(1);
-  const [savedJobIds, setSavedJobIds] = useState([]);
   const [activeTab, setActiveTab] = useState("find"); // "find" | "saved"
 
-  const [jobs, setJobs] = useState([
-    {
-      id: 1,
-      title: "Senior Frontend Engineer",
-      company: "Stripe",
-      location: "Remote in San Francisco, CA",
-      type: "Full-time",
-      salary: "$145,000 - $175,000 a year",
-      tags: ["React", "TypeScript", "GraphQL"],
-      posted: "2 days ago",
-      rating: "4.8",
-    },
-    {
-      id: 2,
-      title: "Full Stack Developer",
-      company: "Airbnb",
-      location: "San Francisco, CA",
-      type: "Full-time",
-      salary: "$130,000 - $160,000 a year",
-      tags: ["React", "Node.js", "Tailwind"],
-      posted: "1 day ago",
-      rating: "4.6",
-    },
-    {
-      id: 3,
-      title: "Product Designer (UI/UX)",
-      company: "Figma",
-      location: "Remote",
-      type: "Full-time",
-      salary: "$110,000 - $140,000 a year",
-      tags: ["Figma", "Design Systems", "Prototyping"],
-      posted: "3 days ago",
-      rating: "4.9",
-    },
-    {
-      id: 4,
-      title: "Backend Node.js Engineer",
-      company: "Datadog",
-      location: "New York, NY",
-      type: "Contract",
-      salary: "$120,000 - $150,000 a year",
-      tags: ["Node.js", "AWS", "Docker"],
-      posted: "5 hours ago",
-      rating: "4.4",
-    },
-  ]);
+  // 3. Save to localStorage whenever jobs change
+  useEffect(() => {
+    localStorage.setItem("hireflow_jobs", JSON.stringify(jobs));
+  }, [jobs]);
+
+  // 4. Save to localStorage whenever savedJobIds change
+  useEffect(() => {
+    localStorage.setItem("hireflow_saved_ids", JSON.stringify(savedJobIds));
+  }, [savedJobIds]);
 
   // Toggle Bookmark logic
   const handleToggleSave = (id) => {
@@ -70,22 +92,18 @@ export default function App() {
 
   // Filter jobs by Tab, Search, Location, and Type
   const filteredJobs = jobs.filter((job) => {
-    // 1. Tab check: If on "saved" tab, only show saved jobs
     if (activeTab === "saved" && !savedJobIds.includes(job.id)) {
       return false;
     }
 
-    // 2. What (Title / Company) search
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // 3. Where (Location) search
     const matchesLocation = job.location
       .toLowerCase()
       .includes(locationTerm.toLowerCase());
 
-    // 4. Job Type pill filter
     const matchesType =
       selectedType === "All" ||
       job.type.toLowerCase() === selectedType.toLowerCase() ||
@@ -94,7 +112,6 @@ export default function App() {
     return matchesSearch && matchesLocation && matchesType;
   });
 
-  // Find currently selected job
   const selectedJob =
     jobs.find((job) => job.id === selectedJobId) || filteredJobs[0] || null;
 
@@ -107,7 +124,6 @@ export default function App() {
   const handleDeleteJob = (idToDelete) => {
     const updated = jobs.filter((job) => job.id !== idToDelete);
     setJobs(updated);
-    // Also remove from saved list if deleted
     setSavedJobIds(savedJobIds.filter((id) => id !== idToDelete));
     if (selectedJobId === idToDelete && updated.length > 0) {
       setSelectedJobId(updated[0].id);
@@ -210,7 +226,6 @@ export default function App() {
 
       {/* 4. Main 2-Column Split Feed */}
       <main className="feed-container">
-        {/* Post Form Modal/Card (if opened) */}
         {showForm && (
           <div style={{ marginBottom: "24px" }}>
             <JobForm onAddJob={handleAddJob} />
