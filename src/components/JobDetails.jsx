@@ -1,8 +1,10 @@
-import { useState } from "react";
-
-export default function JobDetails({ job, isSaved, onToggleSave }) {
-  const [isApplied, setIsApplied] = useState(false);
-
+export default function JobDetails({
+  job,
+  isSaved,
+  isApplied,
+  onToggleSave,
+  onApplyClick,
+}) {
   if (!job) {
     return (
       <div className="indeed-details-pane empty">
@@ -43,8 +45,12 @@ export default function JobDetails({ job, isSaved, onToggleSave }) {
       <div className="details-actions">
         <button
           className="btn-indeed-apply"
-          onClick={() => setIsApplied(true)}
+          onClick={() => onApplyClick(job)}
           disabled={isApplied}
+          style={{
+            backgroundColor: isApplied ? "#10b981" : "#2557a7",
+            cursor: isApplied ? "default" : "pointer",
+          }}
         >
           {isApplied ? "Applied ✓" : "Apply now 🚀"}
         </button>
