@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import JobCard from "./components/JobCard";
 import JobForm from "./components/JobForm";
 import JobDetails from "./components/JobDetails";
+import ApplyModal from "./components/ApplyModal";
 
 const DEFAULT_JOBS = [
   {
@@ -56,32 +57,44 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [selectedType, setSelectedType] = useState("All");
 
-  // 1. Initialize jobs from localStorage or fallback to DEFAULT_JOBS
+  // 1. Jobs state with localStorage persistence
   const [jobs, setJobs] = useState(() => {
     const saved = localStorage.getItem("hireflow_jobs");
     return saved ? JSON.parse(saved) : DEFAULT_JOBS;
   });
 
-  // 2. Initialize savedJobIds from localStorage
+  // 2. Saved Bookmarks state
   const [savedJobIds, setSavedJobIds] = useState(() => {
     const saved = localStorage.getItem("hireflow_saved_ids");
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [selectedJobId, setSelectedJobId] = useState(1);
-  const [activeTab, setActiveTab] = useState("find"); // "find" | "saved"
+  // 3. Applied Jobs state
+  const [appliedJobIds, setAppliedJobIds] = useState(() => {
+    const saved = localStorage.getItem("hireflow_applied_ids");
+    return saved ? JSON.parse(saved) : [];
+  });
 
-  // 3. Save to localStorage whenever jobs change
+  // 4. Modal state (holds job object to apply to, or null if closed)
+  const [applyingJob, setApplyingJob] = useState(null);
+
+  const [selectedJobId, setSelectedJobId] = useState(1);
+  const [activeTab, setActiveTab] = useState("find"); // "find" | "saved" | "applied"
+
+  // Persistence Effects
   useEffect(() => {
     localStorage.setItem("hireflow_jobs", JSON.stringify(jobs));
   }, [jobs]);
 
-  // 4. Save to localStorage whenever savedJobIds change
   useEffect(() => {
     localStorage.setItem("hireflow_saved_ids", JSON.stringify(savedJobIds));
   }, [savedJobIds]);
 
-  // Toggle Bookmark logic
+  useEffect(() => {
+    localStorage.setItem("hireflow_applied_ids", JSON.stringify(appliedJobIds));
+  }, [appliedJobIds]);
+
+  // Toggle Bookmark
   const handleToggleSave = (id) => {
     if (savedJobIds.includes(id)) {
       setSavedJobIds(savedJobIds.filter((jobId) => jobId !== id));
@@ -90,9 +103,19 @@ export default function App() {
     }
   };
 
+  // Submit Application
+  const handleSubmitApplication = (jobId) => {
+    if (!appliedJobIds.includes(jobId)) {
+      setAppliedJobIds([...appliedJobIds, jobId]);
+    }
+  };
+
   // Filter jobs by Tab, Search, Location, and Type
   const filteredJobs = jobs.filter((job) => {
     if (activeTab === "saved" && !savedJobIds.includes(job.id)) {
+      return false;
+    }
+    if (activeTab === "applied" && !appliedJobIds.includes(job.id)) {
       return false;
     }
 
@@ -125,6 +148,7 @@ export default function App() {
     const updated = jobs.filter((job) => job.id !== idToDelete);
     setJobs(updated);
     setSavedJobIds(savedJobIds.filter((id) => id !== idToDelete));
+    setAppliedJobIds(appliedJobIds.filter((id) => id !== idToDelete));
     if (selectedJobId === idToDelete && updated.length > 0) {
       setSelectedJobId(updated[0].id);
     }
@@ -164,8 +188,15 @@ export default function App() {
               </a>
             </li>
             <li>
-              <a href="#" className="nav-link" onClick={(e) => e.preventDefault()}>
-                Salary guide
+              <a
+                href="#"
+                className={`nav-link ${activeTab === "applied" ? "active" : ""}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveTab("applied");
+                }}
+              >
+                ✓ Applied ({appliedJobIds.length})
               </a>
             </li>
           </ul>
@@ -234,11 +265,17 @@ export default function App() {
 
         <div className="feed-header">
           <span>
-            {activeTab === "saved" ? (
+            {activeTab === "saved" && (
               <>
                 <strong>Saved Jobs</strong> ({filteredJobs.length})
               </>
-            ) : (
+            )}
+            {activeTab === "applied" && (
+              <>
+                <strong>Applied Jobs</strong> ({filteredJobs.length})
+              </>
+            )}
+            {activeTab === "find" && (
               <>
                 Showing <strong>{filteredJobs.length}</strong> jobs based on your search
               </>
@@ -263,11 +300,15 @@ export default function App() {
                 <h3 style={{ fontSize: "18px", color: "#2d2d2d", marginBottom: "8px" }}>
                   {activeTab === "saved"
                     ? "You haven't saved any jobs yet"
+                    : activeTab === "applied"
+                    ? "You haven't applied to any jobs yet"
                     : "No jobs match your search"}
                 </h3>
                 <p style={{ color: "#595959", fontSize: "14px" }}>
                   {activeTab === "saved"
-                    ? "Click the heart icon on any job card to save it for later."
+                    ? "Click the heart icon on any job card to save it."
+                    : activeTab === "applied"
+                    ? "Click 'Apply now' on any job to submit an application."
                     : "Try different keywords or remove filters."}
                 </p>
               </div>
@@ -278,8 +319,10 @@ export default function App() {
                   {...job}
                   isSelected={job.id === selectedJobId}
                   isSaved={savedJobIds.includes(job.id)}
+                  isApplied={appliedJobIds.includes(job.id)}
                   onSelect={setSelectedJobId}
                   onToggleSave={handleToggleSave}
+                  onApplyClick={setApplyingJob}
                   onDelete={handleDeleteJob}
                 />
               ))
@@ -292,12 +335,23 @@ export default function App() {
               <JobDetails
                 job={selectedJob}
                 isSaved={savedJobIds.includes(selectedJob.id)}
+                isApplied={appliedJobIds.includes(selectedJob.id)}
                 onToggleSave={handleToggleSave}
+                onApplyClick={setApplyingJob}
               />
             </aside>
           )}
         </div>
       </main>
+
+      {/* 5. Popup Apply Modal */}
+      {applyingJob && (
+        <ApplyModal
+          job={applyingJob}
+          onClose={() => setApplyingJob(null)}
+          onSubmitApplication={handleSubmitApplication}
+        />
+      )}
     </div>
   );
 }
