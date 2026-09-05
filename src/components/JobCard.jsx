@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 export default function JobCard({
   id,
   title,
@@ -12,12 +10,12 @@ export default function JobCard({
   rating = "4.5",
   isSelected,
   isSaved,
+  isApplied,
   onSelect,
   onToggleSave,
+  onApplyClick,
   onDelete,
 }) {
-  const [isApplied, setIsApplied] = useState(false);
-
   return (
     <div
       className={`indeed-card ${isSelected ? "selected" : ""}`}
@@ -58,7 +56,7 @@ export default function JobCard({
       {/* Easily Apply Badge */}
       <div className="easy-apply-badge">
         <span>⚡</span>
-        <span>Easily apply</span>
+        <span>{isApplied ? "Application submitted" : "Easily apply"}</span>
       </div>
 
       {/* Snippet Bullet Points */}
@@ -75,7 +73,7 @@ export default function JobCard({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setIsApplied(true);
+              onApplyClick({ id, title, company, location });
             }}
             disabled={isApplied}
             style={{
