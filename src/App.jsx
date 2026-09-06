@@ -51,11 +51,18 @@ const DEFAULT_JOBS = [
   },
 ];
 
+// Helper to extract numbers from salary strings
+const getSalaryNumber = (salaryStr = "") => {
+  const numbers = salaryStr.replace(/[^0-9]/g, "");
+  return numbers ? parseInt(numbers, 10) : 0;
+};
+
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [locationTerm, setLocationTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedType, setSelectedType] = useState("All");
+  const [sortBy, setSortBy] = useState("recent"); // "recent" | "salary" | "rating"
 
   // 1. Jobs state with localStorage persistence
   const [jobs, setJobs] = useState(() => {
@@ -75,7 +82,7 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 4. Modal state (holds job object to apply to, or null if closed)
+  // 4. Modal state
   const [applyingJob, setApplyingJob] = useState(null);
 
   const [selectedJobId, setSelectedJobId] = useState(1);
@@ -110,7 +117,7 @@ export default function App() {
     }
   };
 
-  // Filter jobs by Tab, Search, Location, and Type
+  // Step 1: Filter jobs by Tab, Search, Location, and Type
   const filteredJobs = jobs.filter((job) => {
     if (activeTab === "saved" && !savedJobIds.includes(job.id)) {
       return false;
@@ -135,8 +142,20 @@ export default function App() {
     return matchesSearch && matchesLocation && matchesType;
   });
 
+  // Step 2: Sort the filtered jobs immutably
+  const sortedJobs = [...filteredJobs].sort((a, b) => {
+    if (sortBy === "salary") {
+      return getSalaryNumber(b.salary) - getSalaryNumber(a.salary); // Highest salary first
+    }
+    if (sortBy === "rating") {
+      return parseFloat(b.rating || 0) - parseFloat(a.rating || 0); // Highest rated first
+    }
+    // Default "recent": highest ID first
+    return b.id - a.id;
+  });
+
   const selectedJob =
-    jobs.find((job) => job.id === selectedJobId) || filteredJobs[0] || null;
+    jobs.find((job) => job.id === selectedJobId) || sortedJobs[0] || null;
 
   const handleAddJob = (newJob) => {
     setJobs([newJob, ...jobs]);
@@ -263,31 +282,61 @@ export default function App() {
           </div>
         )}
 
-        <div className="feed-header">
-          <span>
-            {activeTab === "saved" && (
-              <>
-                <strong>Saved Jobs</strong> ({filteredJobs.length})
-              </>
-            )}
-            {activeTab === "applied" && (
-              <>
-                <strong>Applied Jobs</strong> ({filteredJobs.length})
-              </>
-            )}
-            {activeTab === "find" && (
-              <>
-                Showing <strong>{filteredJobs.length}</strong> jobs based on your search
-              </>
-            )}
-          </span>
+        {/* Header with Results Count & Sort Dropdown */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+          <div className="feed-header" style={{ margin: 0 }}>
+            <span>
+              {activeTab === "saved" && (
+                <>
+                  <strong>Saved Jobs</strong> ({sortedJobs.length})
+                </>
+              )}
+              {activeTab === "applied" && (
+                <>
+                  <strong>Applied Jobs</strong> ({sortedJobs.length})
+                </>
+              )}
+              {activeTab === "find" && (
+                <>
+                  Showing <strong>{sortedJobs.length}</strong> jobs
+                </>
+              )}
+            </span>
+          </div>
+
+          {/* Sort By Dropdown */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", color: "#595959" }}>
+            <label htmlFor="sort-select" style={{ fontWeight: "600" }}>
+              Sort by:
+            </label>
+            <select
+              id="sort-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{
+                padding: "6px 10px",
+                border: "1px solid #d4d2d0",
+                borderRadius: "6px",
+                fontSize: "13px",
+                fontWeight: "600",
+                color: "#2d2d2d",
+                backgroundColor: "#ffffff",
+                cursor: "pointer",
+                outline: "none",
+              }}
+            >
+              <option value="recent">date (most recent)</option>
+              <option value="salary">salary (highest first)</option>
+              <option value="rating">rating (top companies)</option>
+            </select>
+          </div>
         </div>
 
         {/* 2-Column Split View */}
         <div className="indeed-split-layout">
           {/* Left Column: Job Cards List */}
           <section className="job-list">
-            {filteredJobs.length === 0 ? (
+            {sortedJobs.length === 0 ? (
               <div
                 style={{
                   backgroundColor: "#ffffff",
@@ -313,7 +362,7 @@ export default function App() {
                 </p>
               </div>
             ) : (
-              filteredJobs.map((job) => (
+              sortedJobs.map((job) => (
                 <JobCard
                   key={job.id}
                   {...job}
@@ -330,7 +379,7 @@ export default function App() {
           </section>
 
           {/* Right Column: Sticky Job Details Pane */}
-          {filteredJobs.length > 0 && selectedJob && (
+          {sortedJobs.length > 0 && selectedJob && (
             <aside>
               <JobDetails
                 job={selectedJob}
