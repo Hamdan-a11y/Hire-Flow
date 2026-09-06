@@ -3,6 +3,7 @@ import JobCard from "./components/JobCard";
 import JobForm from "./components/JobForm";
 import JobDetails from "./components/JobDetails";
 import ApplyModal from "./components/ApplyModal";
+import Toast from "./components/Toast";
 
 const DEFAULT_JOBS = [
   {
@@ -51,7 +52,6 @@ const DEFAULT_JOBS = [
   },
 ];
 
-// Helper to extract numbers from salary strings
 const getSalaryNumber = (salaryStr = "") => {
   const numbers = salaryStr.replace(/[^0-9]/g, "");
   return numbers ? parseInt(numbers, 10) : 0;
@@ -62,31 +62,34 @@ export default function App() {
   const [locationTerm, setLocationTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [selectedType, setSelectedType] = useState("All");
-  const [sortBy, setSortBy] = useState("recent"); // "recent" | "salary" | "rating"
+  const [sortBy, setSortBy] = useState("recent");
 
-  // 1. Jobs state with localStorage persistence
+  // 1. Toast Notification state
+  const [toastMessage, setToastMessage] = useState(null);
+
+  // 2. Jobs state with localStorage persistence
   const [jobs, setJobs] = useState(() => {
     const saved = localStorage.getItem("hireflow_jobs");
     return saved ? JSON.parse(saved) : DEFAULT_JOBS;
   });
 
-  // 2. Saved Bookmarks state
+  // 3. Saved Bookmarks state
   const [savedJobIds, setSavedJobIds] = useState(() => {
     const saved = localStorage.getItem("hireflow_saved_ids");
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 3. Applied Jobs state
+  // 4. Applied Jobs state
   const [appliedJobIds, setAppliedJobIds] = useState(() => {
     const saved = localStorage.getItem("hireflow_applied_ids");
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 4. Modal state
+  // 5. Modal state
   const [applyingJob, setApplyingJob] = useState(null);
 
   const [selectedJobId, setSelectedJobId] = useState(1);
-  const [activeTab, setActiveTab] = useState("find"); // "find" | "saved" | "applied"
+  const [activeTab, setActiveTab] = useState("find");
 
   // Persistence Effects
   useEffect(() => {
@@ -101,23 +104,54 @@ export default function App() {
     localStorage.setItem("hireflow_applied_ids", JSON.stringify(appliedJobIds));
   }, [appliedJobIds]);
 
-  // Toggle Bookmark
+  // Helper to trigger toast
+  const showToast = (message) => {
+    setToastMessage(message);
+  };
+
+  // Toggle Bookmark with Toast
   const handleToggleSave = (id) => {
+    const job = jobs.find((j) => j.id === id);
     if (savedJobIds.includes(id)) {
       setSavedJobIds(savedJobIds.filter((jobId) => jobId !== id));
+      showToast(`Removed "${job?.title || "Job"}" from Saved Jobs`);
     } else {
       setSavedJobIds([...savedJobIds, id]);
+      showToast(`Saved "${job?.title || "Job"}" to bookmarks ♥`);
     }
   };
 
-  // Submit Application
+  // Submit Application with Toast
   const handleSubmitApplication = (jobId) => {
+    const job = jobs.find((j) => j.id === jobId);
     if (!appliedJobIds.includes(jobId)) {
       setAppliedJobIds([...appliedJobIds, jobId]);
     }
+    showToast(`Application sent to ${job?.company || "Company"}! 🚀`);
   };
 
-  // Step 1: Filter jobs by Tab, Search, Location, and Type
+  // Add Job with Toast
+  const handleAddJob = (newJob) => {
+    setJobs([newJob, ...jobs]);
+    setSelectedJobId(newJob.id);
+    setShowForm(false);
+    showToast(`"${newJob.title}" posted successfully! 🎉`);
+  };
+
+  // Delete Job with Toast
+  const handleDeleteJob = (idToDelete) => {
+    const job = jobs.find((j) => j.id === idToDelete);
+    const updated = jobs.filter((job) => job.id !== idToDelete);
+    setJobs(updated);
+    setSavedJobIds(savedJobIds.filter((id) => id !== idToDelete));
+    setAppliedJobIds(appliedJobIds.filter((id) => id !== idToDelete));
+    if (selectedJobId === idToDelete && updated.length > 0) {
+      setSelectedJobId(updated[0].id);
+    }
+    showToast(`Deleted "${job?.title || "Job"}" 🗑️`);
+  };
+
+  // Filter jobs by Tab, Search, Location, and Type
   const filteredJobs = jobs.filter((job) => {
     if (activeTab === "saved" && !savedJobIds.includes(job.id)) {
       return false;
@@ -142,36 +176,19 @@ export default function App() {
     return matchesSearch && matchesLocation && matchesType;
   });
 
-  // Step 2: Sort the filtered jobs immutably
+  // Sort filtered jobs
   const sortedJobs = [...filteredJobs].sort((a, b) => {
     if (sortBy === "salary") {
-      return getSalaryNumber(b.salary) - getSalaryNumber(a.salary); // Highest salary first
+      return getSalaryNumber(b.salary) - getSalaryNumber(a.salary);
     }
     if (sortBy === "rating") {
-      return parseFloat(b.rating || 0) - parseFloat(a.rating || 0); // Highest rated first
+      return parseFloat(b.rating || 0) - parseFloat(a.rating || 0);
     }
-    // Default "recent": highest ID first
     return b.id - a.id;
   });
 
   const selectedJob =
     jobs.find((job) => job.id === selectedJobId) || sortedJobs[0] || null;
-
-  const handleAddJob = (newJob) => {
-    setJobs([newJob, ...jobs]);
-    setSelectedJobId(newJob.id);
-    setShowForm(false);
-  };
-
-  const handleDeleteJob = (idToDelete) => {
-    const updated = jobs.filter((job) => job.id !== idToDelete);
-    setJobs(updated);
-    setSavedJobIds(savedJobIds.filter((id) => id !== idToDelete));
-    setAppliedJobIds(appliedJobIds.filter((id) => id !== idToDelete));
-    if (selectedJobId === idToDelete && updated.length > 0) {
-      setSelectedJobId(updated[0].id);
-    }
-  };
 
   return (
     <div>
@@ -282,7 +299,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Header with Results Count & Sort Dropdown */}
+        {/* Results Count & Sort Dropdown */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <div className="feed-header" style={{ margin: 0 }}>
             <span>
@@ -401,6 +418,12 @@ export default function App() {
           onSubmitApplication={handleSubmitApplication}
         />
       )}
+
+      {/* 6. Floating Toast Notification */}
+      <Toast
+        message={toastMessage}
+        onClose={() => setToastMessage(null)}
+      />
     </div>
   );
 }
