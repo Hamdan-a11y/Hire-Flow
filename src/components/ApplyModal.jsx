@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X, Send } from "lucide-react";
 
 export default function ApplyModal({ job, onClose, onSubmitApplication }) {
   const [name, setName] = useState("");
