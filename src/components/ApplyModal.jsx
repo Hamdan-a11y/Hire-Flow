@@ -75,7 +75,7 @@ export default function ApplyModal({ job, onClose, onSubmitApplication }) {
               padding: "4px",
             }}
           >
-            ✕
+            <X size={20} />
           </button>
         </div>
 
