@@ -200,7 +200,9 @@ export default function ApplyModal({ job, onClose, onSubmitApplication }) {
                 cursor: "pointer",
               }}
             >
-              Submit Application 🚀
+              <Send size={15} style={{ marginRight: "8px" }} />
+Submit Application
+
             </button>
           </div>
         </form>
