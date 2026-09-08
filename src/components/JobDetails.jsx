@@ -1,3 +1,5 @@
+import { Star, Heart, Send, Check, MapPin, Banknote, Briefcase, Clock } from "lucide-react";
+
 export default function JobDetails({
   job,
   isSaved,
@@ -22,21 +24,27 @@ export default function JobDetails({
           <a href="#" className="details-company-name">
             {job.company}
           </a>
-          <span className="company-rating">
-            {job.rating} <span className="company-stars">★</span>
+          <span className="company-rating" style={{ display: "inline-flex", alignItems: "center", gap: "3px" }}>
+            {job.rating}
+            <Star size={13} fill="#f59e0b" color="#f59e0b" />
           </span>
         </div>
-        <p className="details-location">{job.location}</p>
+        <p className="details-location" style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+          <MapPin size={14} color="#767676" />
+          {job.location}
+        </p>
       </div>
 
       {/* Salary & Type info box */}
       <div className="details-pill-box">
-        <div>
-          <span className="details-label">Pay: </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Banknote size={16} color="#2557a7" />
+          <span className="details-label">Pay:</span>
           <span className="details-value">{job.salary}</span>
         </div>
-        <div>
-          <span className="details-label">Job type: </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Briefcase size={16} color="#2557a7" />
+          <span className="details-label">Job type:</span>
           <span className="details-value">{job.type}</span>
         </div>
       </div>
@@ -50,16 +58,33 @@ export default function JobDetails({
           style={{
             backgroundColor: isApplied ? "#10b981" : "#2557a7",
             cursor: isApplied ? "default" : "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
           }}
         >
-          {isApplied ? "Applied ✓" : "Apply now 🚀"}
+          {isApplied ? (
+            <>
+              <Check size={16} /> Applied
+            </>
+          ) : (
+            <>
+              <Send size={16} /> Apply now
+            </>
+          )}
         </button>
 
         <button
           className={`btn-indeed-save ${isSaved ? "saved" : ""}`}
           onClick={() => onToggleSave(job.id)}
+          style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
         >
-          {isSaved ? "♥ Saved" : "♡ Save job"}
+          <Heart
+            size={16}
+            fill={isSaved ? "#2557a7" : "none"}
+            color="#2557a7"
+          />
+          {isSaved ? "Saved" : "Save job"}
         </button>
       </div>
 
@@ -97,7 +122,10 @@ export default function JobDetails({
           <li>Flexible paid time off and remote work stipend.</li>
         </ul>
 
-        <p className="details-posted-date">Posted {job.posted}</p>
+        <p className="details-posted-date" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <Clock size={13} color="#767676" />
+          Posted {job.posted}
+        </p>
       </div>
     </div>
   );
