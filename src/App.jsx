@@ -198,7 +198,7 @@ export default function App() {
           <a href="#" className="indeed-logo" onClick={() => setActiveTab("find")}>
             indeed
           </a>
-          <ul className="nav-links">
+                    <ul className="nav-links">
             <li>
               <a
                 href="#"
@@ -219,7 +219,6 @@ export default function App() {
                   e.preventDefault();
                   setActiveTab("saved");
                 }}
-                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
               >
                 <Heart
                   size={15}
@@ -237,7 +236,6 @@ export default function App() {
                   e.preventDefault();
                   setActiveTab("applied");
                 }}
-                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
               >
                 <CheckCircle2
                   size={15}
