@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Search, MapPin, Heart, CheckCircle2, ChevronDown } from "lucide-react";
 import JobCard from "./components/JobCard";
 import JobForm from "./components/JobForm";
 import JobDetails from "./components/JobDetails";
@@ -64,28 +65,28 @@ export default function App() {
   const [selectedType, setSelectedType] = useState("All");
   const [sortBy, setSortBy] = useState("recent");
 
-  // 1. Toast Notification state
+  // Toast state
   const [toastMessage, setToastMessage] = useState(null);
 
-  // 2. Jobs state with localStorage persistence
+  // Jobs state
   const [jobs, setJobs] = useState(() => {
     const saved = localStorage.getItem("hireflow_jobs");
     return saved ? JSON.parse(saved) : DEFAULT_JOBS;
   });
 
-  // 3. Saved Bookmarks state
+  // Saved Bookmarks state
   const [savedJobIds, setSavedJobIds] = useState(() => {
     const saved = localStorage.getItem("hireflow_saved_ids");
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 4. Applied Jobs state
+  // Applied Jobs state
   const [appliedJobIds, setAppliedJobIds] = useState(() => {
     const saved = localStorage.getItem("hireflow_applied_ids");
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 5. Modal state
+  // Modal state
   const [applyingJob, setApplyingJob] = useState(null);
 
   const [selectedJobId, setSelectedJobId] = useState(1);
@@ -104,12 +105,11 @@ export default function App() {
     localStorage.setItem("hireflow_applied_ids", JSON.stringify(appliedJobIds));
   }, [appliedJobIds]);
 
-  // Helper to trigger toast
   const showToast = (message) => {
     setToastMessage(message);
   };
 
-  // Toggle Bookmark with Toast
+  // Toggle Bookmark
   const handleToggleSave = (id) => {
     const job = jobs.find((j) => j.id === id);
     if (savedJobIds.includes(id)) {
@@ -117,28 +117,28 @@ export default function App() {
       showToast(`Removed "${job?.title || "Job"}" from Saved Jobs`);
     } else {
       setSavedJobIds([...savedJobIds, id]);
-      showToast(`Saved "${job?.title || "Job"}" to bookmarks ♥`);
+      showToast(`Saved "${job?.title || "Job"}" to bookmarks`);
     }
   };
 
-  // Submit Application with Toast
+  // Submit Application
   const handleSubmitApplication = (jobId) => {
     const job = jobs.find((j) => j.id === jobId);
     if (!appliedJobIds.includes(jobId)) {
       setAppliedJobIds([...appliedJobIds, jobId]);
     }
-    showToast(`Application sent to ${job?.company || "Company"}! 🚀`);
+    showToast(`Application submitted to ${job?.company || "Company"}!`);
   };
 
-  // Add Job with Toast
+  // Add Job
   const handleAddJob = (newJob) => {
     setJobs([newJob, ...jobs]);
     setSelectedJobId(newJob.id);
     setShowForm(false);
-    showToast(`"${newJob.title}" posted successfully! 🎉`);
+    showToast(`"${newJob.title}" posted successfully!`);
   };
 
-  // Delete Job with Toast
+  // Delete Job
   const handleDeleteJob = (idToDelete) => {
     const job = jobs.find((j) => j.id === idToDelete);
     const updated = jobs.filter((job) => job.id !== idToDelete);
@@ -148,10 +148,10 @@ export default function App() {
     if (selectedJobId === idToDelete && updated.length > 0) {
       setSelectedJobId(updated[0].id);
     }
-    showToast(`Deleted "${job?.title || "Job"}" 🗑️`);
+    showToast(`Deleted listing for "${job?.title || "Job"}"`);
   };
 
-  // Filter jobs by Tab, Search, Location, and Type
+  // Filter jobs
   const filteredJobs = jobs.filter((job) => {
     if (activeTab === "saved" && !savedJobIds.includes(job.id)) {
       return false;
@@ -176,7 +176,7 @@ export default function App() {
     return matchesSearch && matchesLocation && matchesType;
   });
 
-  // Sort filtered jobs
+  // Sort jobs
   const sortedJobs = [...filteredJobs].sort((a, b) => {
     if (sortBy === "salary") {
       return getSalaryNumber(b.salary) - getSalaryNumber(a.salary);
@@ -219,8 +219,14 @@ export default function App() {
                   e.preventDefault();
                   setActiveTab("saved");
                 }}
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
               >
-                ♥ Saved ({savedJobIds.length})
+                <Heart
+                  size={15}
+                  fill={activeTab === "saved" ? "#2557a7" : "none"}
+                  color={activeTab === "saved" ? "#2557a7" : "#595959"}
+                />
+                Saved ({savedJobIds.length})
               </a>
             </li>
             <li>
@@ -231,8 +237,13 @@ export default function App() {
                   e.preventDefault();
                   setActiveTab("applied");
                 }}
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
               >
-                ✓ Applied ({appliedJobIds.length})
+                <CheckCircle2
+                  size={15}
+                  color={activeTab === "applied" ? "#2557a7" : "#595959"}
+                />
+                Applied ({appliedJobIds.length})
               </a>
             </li>
           </ul>
@@ -252,6 +263,7 @@ export default function App() {
       <header className="search-hero">
         <div className="search-box-wrapper">
           <div className="search-field">
+            <Search size={18} color="#767676" style={{ marginRight: "8px", flexShrink: 0 }} />
             <label>What</label>
             <input
               type="text"
@@ -262,6 +274,7 @@ export default function App() {
           </div>
 
           <div className="search-field">
+            <MapPin size={18} color="#767676" style={{ marginRight: "8px", flexShrink: 0 }} />
             <label>Where</label>
             <input
               type="text"
@@ -283,8 +296,10 @@ export default function App() {
                 key={type}
                 className={`indeed-pill ${isActive ? "active" : ""}`}
                 onClick={() => setSelectedType(type)}
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
               >
-                {type} {type !== "All" && "▾"}
+                <span>{type}</span>
+                {type !== "All" && <ChevronDown size={14} />}
               </button>
             );
           })}
