@@ -1,3 +1,5 @@
+import { Star, Heart, Zap, Check, Trash2, MapPin } from "lucide-react";
+
 export default function JobCard({
   id,
   title,
@@ -27,11 +29,15 @@ export default function JobCard({
           <h2 className="card-job-title">{title}</h2>
           <div className="card-company-line">
             <span>{company}</span>
-            <span className="company-rating">
-              {rating} <span className="company-stars">★</span>
+            <span className="company-rating" style={{ display: "inline-flex", alignItems: "center", gap: "3px" }}>
+              {rating}
+              <Star size={13} fill="#f59e0b" color="#f59e0b" />
             </span>
           </div>
-          <div className="card-location">{location}</div>
+          <div className="card-location" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <MapPin size={13} color="#767676" />
+            <span>{location}</span>
+          </div>
         </div>
 
         {/* Heart Bookmark Button */}
@@ -42,8 +48,13 @@ export default function JobCard({
             onToggleSave(id);
           }}
           title={isSaved ? "Saved" : "Save job"}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
         >
-          {isSaved ? "♥" : "♡"}
+          <Heart
+            size={18}
+            fill={isSaved ? "#2557a7" : "none"}
+            color={isSaved ? "#2557a7" : "#767676"}
+          />
         </button>
       </div>
 
@@ -54,9 +65,18 @@ export default function JobCard({
       </div>
 
       {/* Easily Apply Badge */}
-      <div className="easy-apply-badge">
-        <span>⚡</span>
-        <span>{isApplied ? "Application submitted" : "Easily apply"}</span>
+      <div className="easy-apply-badge" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        {isApplied ? (
+          <>
+            <Check size={14} color="#10b981" />
+            <span style={{ color: "#10b981" }}>Application submitted</span>
+          </>
+        ) : (
+          <>
+            <Zap size={14} fill="#2557a7" color="#2557a7" />
+            <span>Easily apply</span>
+          </>
+        )}
       </div>
 
       {/* Snippet Bullet Points */}
@@ -85,9 +105,18 @@ export default function JobCard({
               fontSize: "13px",
               fontWeight: "700",
               cursor: isApplied ? "default" : "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "5px",
             }}
           >
-            {isApplied ? "Applied ✓" : "Apply now"}
+            {isApplied ? (
+              <>
+                <Check size={14} /> Applied
+              </>
+            ) : (
+              "Apply now"
+            )}
           </button>
 
           <button
@@ -101,8 +130,12 @@ export default function JobCard({
               color: "#949494",
               fontSize: "12px",
               cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
             }}
           >
+            <Trash2 size={13} />
             Delete
           </button>
         </div>
